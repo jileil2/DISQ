@@ -21,7 +21,9 @@ Remotes:
     funstatpackages/Triangulation,
     FIRST-Data-Lab/BPST
 Suggests:
-    nleqslv
+    nleqslv,
+    RANN,
+    spdep
 LinkingTo:
     Rcpp,
     RcppArmadillo
