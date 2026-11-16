@@ -46,4 +46,6 @@ evaluations \code{beta_eval}, and fitted conditional quantiles \code{fitted}.
 For models with constants it also contains local root diagnostics, the projection,
 bandwidths, communication trace and endpoint spatial covariance. The
 \code{completed} flag records availability of the requested endpoint.
-The \code{converged} flag reports the endpoint score check.}
+The \code{converged} flag reports the endpoint maximum absolute score check.
+The communication trace also reports the mean absolute score and whether
+it is below the manuscript threshold of \eqn{10^{-4}} at each iterate.}

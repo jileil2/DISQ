@@ -151,9 +151,12 @@
                    pair_kernel, level = level, kernel = kernel))
   final <- covariance[[length(covariance)]]
   score_norm <- apply(abs(score_trace), 1L, max)
+  mean_absolute_score <- rowMeans(abs(score_trace))
   list(eta = as.numeric(tail(trace, 1L)), trace = trace, eta.trace = trace,
        rounds = as.integer(rounds), score_trace = score_trace, trace.sc = score_trace,
        score_norm = tail(score_norm, 1L), score_norm_trace = score_norm,
+       mean_absolute_score = mean_absolute_score,
+       manuscript_score_met = mean_absolute_score < 1e-4,
        tolerance_reached = score_norm <= tol,
        completed = is.null(failure) && length(rounds) == max_rounds + 1L,
        converged = is.null(failure) && tail(score_norm, 1L) <= tol,

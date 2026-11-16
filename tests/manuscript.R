@@ -22,6 +22,9 @@ local <- list(
 fit <- disq_from_local_fits(Y, C, X, S, B, Q2, index, local, tau = 0.5, radius = 0.25)
 stopifnot(fit$completed, fit$converged, identical(fit$communication$rounds, 0:15),
           fit$covariance$valid, length(fit$eta) == 1,
+          identical(fit$communication$mean_absolute_score,
+                    rowMeans(abs(fit$communication$score_trace))),
+          isTRUE(tail(fit$communication$manuscript_score_met, 1L)),
           max(abs(fit$initialization$eta_mean - colMeans(fit$initialization$eta_star))) < 1e-14,
           max(abs(fit$beta - 0.205)) < 1e-14)
 
