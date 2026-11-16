@@ -1,6 +1,6 @@
 Package: DISQ
 Title: Distributed Inference for Smoothed Quantile Regression on Triangulated Domains
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Jilei", "Lin", email = "jileil2@gwmail.gwu.edu", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0002-7147-9851"))
 Description: Implements DISQ, a distributed inference framework for smoothed quantile regression on triangulated spatial domains. The package provides tools for domain decomposition, local estimation, decorrelated score inference, and distributed aggregation for constant and varying coefficients, with computational acceleration via Rcpp.
@@ -8,6 +8,7 @@ Depends:
     R (>= 3.6.0)
 Imports:
     Matrix,
+    dbscan,
     mgcv,
     parallel,
     Rcpp,
@@ -19,10 +20,14 @@ Remotes:
     jileil2/SQBiT,
     funstatpackages/Triangulation,
     FIRST-Data-Lab/BPST
+Suggests:
+    nleqslv
 LinkingTo:
     Rcpp,
     RcppArmadillo
 License: MIT + file LICENSE
+URL: https://github.com/jileil2/DISQ
+BugReports: https://github.com/jileil2/DISQ/issues
 Encoding: UTF-8
 LazyData: false
 Roxygen: list(markdown = TRUE)

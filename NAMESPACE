@@ -1,2 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 useDynLib(DISQ, .registration = TRUE)
+
+importFrom(Rcpp, evalCpp)
+importFrom(stats, dnorm, dunif, pnorm, punif)
+importFrom(utils, tail)
