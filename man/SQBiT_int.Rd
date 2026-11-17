@@ -2,7 +2,7 @@
 % Please edit documentation in R/SQBiT_int.R
 \name{SQBiT_int}
 \alias{SQBiT_int}
-\title{Distributed / Decomposed SQBiT with Decorrelated Score (Internal Aggregation)}
+\title{Fit local SQBiT models on worker subregions}
 \usage{
 SQBiT_int(
   tau,
@@ -99,74 +99,29 @@ A list with components:
 }
 }
 \description{
-\code{SQBiT_int()} fits a quantile spatial model (QSM) over a triangulated domain by
-decomposing the global triangulation into \strong{sub-triangulations} and fitting SQBiT locally
-within each subregion. It then computes quantities needed for the \strong{decorrelated score}
-construction (e.g., local projection matrices and decorrelated constant-effect estimates),
-and returns per-subregion results plus global aggregates used by DISQ.
-}
-\details{
-\strong{Quantile Spatial Model (QSM).}
-
-The QSM is
-\deqn{
-Q_{\tau}(Y_i \mid \mathbf{C}_i,\mathbf{X}_i, \mathbf{S}_i)
-= \mathbf{C}_i^{\top} \boldsymbol{\eta}_{\tau}
-+ \sum_{j=1}^p X_{ij}\beta_{j,\tau}(\mathbf{S}_i),
-\quad i = 1,\ldots,N,
-}
-where \eqn{\boldsymbol{\eta}_{\tau}} captures constant effects and
-\eqn{\beta_{j,\tau}(\cdot)} are unknown spatially varying coefficients defined on a
-triangulated domain.
-
-\strong{Domain decomposition.}
-
-The global triangulation is partitioned into sub-triangulations \code{triangles},
-where each subregion is represented by a subset of triangle indices (rows of \code{Tr}).
-For each subregion \eqn{a}, the function:
-\enumerate{
-\item finds observations inside that subregion (\code{inVT()}),
-\item constructs a local bivariate triangulation spline basis via \code{basis()} (BPST),
-\item fits a penalized smoothed quantile regression using \code{SQBiT::SQBiT_gacv()},
-\item solves a decorrelated-score ADMM update for constant effects using \code{SQBiT_ds()}.
-}
-
-\strong{Decorrelated score connection.}
-
-Conceptually, the decorrelated score uses a kernel-weighted projection matrix that removes
-first-order dependence on the varying-coefficient nuisance component, yielding an estimating
-equation for \eqn{\boldsymbol{\eta}_\tau} that is locally insensitive to perturbations in
-\eqn{\hat{\boldsymbol{\beta}}(\cdot)} (Neyman-orthogonality type behavior).
-
-This routine returns subregion-wise estimates and the global objects needed for subsequent
-communication-efficient aggregation and inference in DISQ.
-
-\strong{Required packages and helper functions.}
-
-This function expects the following namespaces to be available:
-\code{SQBiT}, \code{DISQ}, \code{Matrix}, \code{mgcv}, \code{BPST}, \code{Triangulation}.
-It also expects the following helper functions to exist in the calling environment
-(typically provided by DISQ/SQBiT and linked C++ code):
-\code{inVT()}, \code{basis()}, \code{eigenMapMatMult()}, \code{smoothness()}, \code{armaInv()},
-and \code{SQBiT_ds()}.
+Fits penalized smoothed quantile regressions on the supplied triangle groups
+and computes local decorrelated constant-coefficient estimates. Raw spline
+coefficients are assembled in global triangle order and projected onto the
+global smoothness constraints.
 }
 \examples{
 \donttest{
 set.seed(123)
 
 ## Step 1. Create triangulation
-boundaries <- matrix(c(0,0, 0,1, 1,1, 1,0), ncol = 2, byrow = TRUE)
+boundaries <- matrix(c(0, 0, 0, 1, 1, 1, 1, 0), ncol = 2, byrow = TRUE)
 tri <- Triangulation::TriMesh(boundaries, n = 13)
 Tr <- tri$Tr
-V  <- round(tri$V, 3)
+V <- round(tri$V, 3)
 
 ## Step 2. Population locations and keep those inside triangulation
 S_pop <- cbind(runif(10000), runif(10000))
-ind_inside <- inVT(V0 = V, Tr0 = Tr, xx = S_pop[,1], yy = S_pop[,2])$ind.inside
+ind_inside <- inVT(V0 = V, Tr0 = Tr, xx = S_pop[, 1], yy = S_pop[, 2])$ind.inside
 S_pop <- S_pop[ind_inside, , drop = FALSE]
 
 ## Step 3. Global triangulation spline basis (population)
-d <- 3; r <- 1
+d <- 3
+r <- 1
 B0_pop <- BPST::basis(V = V, Tr = Tr, d = d, r = r, Z = as.matrix(S_pop))
 Q2 <- B0_pop$Q2
 
@@ -182,12 +137,12 @@ C <- matrix(runif(N * 3, -1, 1), ncol = 3)
 X <- matrix(runif(N * 1, -1, 1), ncol = 1)
 
 beta0_fun <- function(s1, s2) sin(pi * s1 * s2)
-beta1_fun <- function(s1, s2) (1 - (1 - 2*s1)^2) * (1 - (1 - 2*s2)^2)
+beta1_fun <- function(s1, s2) (1 - (1 - 2 * s1)^2) * (1 - (1 - 2 * s2)^2)
 
-beta0 <- beta0_fun(S[,1], S[,2])
-beta1 <- beta1_fun(S[,1], S[,2])
-eta  <- c(1,1,1)
-Y <- beta0 + X[,1] * beta1 + as.numeric(C \%*\% eta) + rnorm(N)
+beta0 <- beta0_fun(S[, 1], S[, 2])
+beta1 <- beta1_fun(S[, 1], S[, 2])
+eta <- c(1, 1, 1)
+Y <- beta0 + X[, 1] * beta1 + as.numeric(C \%*\% eta) + rnorm(N)
 
 ## Step 6. Fit SQBiT_int
 fit_int <- SQBiT_int(

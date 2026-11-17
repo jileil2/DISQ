@@ -5,7 +5,8 @@ disq_bandwidths <- function(N, J, n_master, J_master, c = 0.20) {
   }, logical(1))
   if (!all(valid)) {
     stop("Supply a positive integer for ", paste(names(counts)[!valid], collapse = ", "), ".",
-         call. = FALSE)
+      call. = FALSE
+    )
   }
   if (n_master > N) stop("n_master cannot exceed N.", call. = FALSE)
   if (!is.numeric(c) || length(c) != 1L || !is.finite(c) || c <= 0) {
@@ -13,6 +14,8 @@ disq_bandwidths <- function(N, J, n_master, J_master, c = 0.20) {
   }
 
   log_size <- log(2 + N)^2
-  base::c(h = c * (J * log_size / N)^(1 / 3),
-          b = c * (J_master * log_size / n_master)^(1 / 3))
+  base::c(
+    h = c * (J * log_size / N)^(1 / 3),
+    b = c * (J_master * log_size / n_master)^(1 / 3)
+  )
 }

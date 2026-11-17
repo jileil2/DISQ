@@ -36,7 +36,9 @@
     stop("Global weighted projection normal equations did not pass.")
   }
 
-  list(D = C - prediction, P = t(coefficient), dimension = p * j,
-       orthogonality_error = normal_error,
-       normalized_gram_rcond = rcond(scaled_gram), condition = 1 / rcond(gram))
+  list(
+    D = C - prediction, P = t(coefficient), dimension = p * j,
+    orthogonality_error = normal_error,
+    normalized_gram_rcond = rcond(scaled_gram), condition = 1 / rcond(gram)
+  )
 }

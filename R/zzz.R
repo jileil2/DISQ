@@ -3,7 +3,6 @@
 NULL
 
 .onAttach <- function(libname, pkgname) {
-
   # Avoid attaching extra packages during devtools load/document steps
   # (keeps devtools::document() stable and fast)
   if (nzchar(Sys.getenv("DEVTOOLS_LOAD"))) {

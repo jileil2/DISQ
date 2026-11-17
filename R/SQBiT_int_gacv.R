@@ -41,8 +41,6 @@
 #' across all machines.
 #'
 #' @param tau Quantile level.
-#' @param m Integer. Number of spatial subregions (or local machines).
-#' @param maxTt Integer. Reserved for compatibility with other routines.
 #' @param Y Numeric response vector of length \eqn{N}.
 #' @param C Numeric matrix of covariates with constant coefficients.
 #' @param X Numeric matrix of covariates with varying coefficients.
@@ -59,8 +57,6 @@
 #' @param S Numeric matrix of spatial locations for observations.
 #' @param triangles Optional list defining the domain decomposition.
 #'   Each element contains triangle indices forming one subregion.
-#'   If `FALSE`, a simple automatic partition of the triangulation
-#'   into `m` groups is constructed.
 #' @param nlambda Integer. Number of candidate smoothing parameters used
 #'   in the local GACV tuning step.
 #' @param new.nlambda Integer. Number of refinement steps in lambda tuning.
@@ -68,37 +64,15 @@
 #'   the lambda search grid.
 #'
 #' @details
-#' The function operates in three stages.
-#'
-#' **Step 1. Domain decomposition**
-#'
-#' If the argument `triangles` is not supplied, the triangulation is
-#' automatically partitioned into `m` groups of triangles. Each group
-#' corresponds to one local machine.
-#'
-#' **Step 2. Local estimation**
-#'
-#' For each subregion, observations whose spatial locations fall inside
-#' the sub-triangulation are collected and used to fit the local model
-#' using spline basis functions. The smoothing parameter is selected
-#' by minimizing a local GACV criterion through `SQBiT::SQBiT_gacv()`.
-#'
-#' **Step 3. Aggregation**
-#'
-#' Residuals and effective degrees of freedom from all machines are
-#' aggregated to compute the distributed GACV value.
-#'
-#' This function is primarily used as an internal utility for model
-#' selection procedures such as `forward.disq()`.
-#'
-#' @return
-#' Numeric scalar representing the distributed GACV value.
+#' Each worker fits a local model with \code{SQBiT::SQBiT_gacv()}. The
+#' empirical check losses and effective degrees of freedom are then combined
+#' across workers. Supply the triangle groups explicitly, for example from
+#' \code{\link{subregion_const}}.
 #'
 #' @examples
 #' \dontrun{
 #' gacv <- SQBiT_int_gacv(
 #'   tau = 0.5,
-#'   m = length(triangles),
 #'   Y = Y,
 #'   C = C,
 #'   X = X,
@@ -122,15 +96,13 @@ SQBiT_int_gacv <- function(tau,
                            nlambda = 10,
                            new.nlambda = 10,
                            lambda.scale = 100) {
-
   N <- length(Y)
   nt <- length(triangles)
 
   resid <- vector("list", nt)
-  dfvs  <- numeric(nt)
+  dfvs <- numeric(nt)
 
   for (a in seq_len(nt)) {
-
     ind.a <- inVT(
       V0 = V,
       Tr0 = Tr[triangles[[a]], , drop = FALSE],
@@ -161,11 +133,11 @@ SQBiT_int_gacv <- function(tau,
     )
 
     Q2.sub <- as.matrix(B0.sub$Q2)
-    B.sub  <- as.matrix(B0.sub$B)
-    K.sub  <- as.matrix(B0.sub$K)
+    B.sub <- as.matrix(B0.sub$B)
+    K.sub <- as.matrix(B0.sub$K)
 
     BQ2.sub <- B.sub %*% Q2.sub
-    P.sub   <- t(Q2.sub) %*% K.sub %*% Q2.sub
+    P.sub <- t(Q2.sub) %*% K.sub %*% Q2.sub
 
     W.vary <- kr(X.a, BQ2.sub, byrow = TRUE)
 

@@ -1,78 +1,19 @@
-# ============================================================
-# disq_main(): wrapper for the full DISQ procedure
-# ============================================================
-
-#' Distributed Inference for Spatial Quantile (DISQ)
+#' Fit a quantile spatial model by distributed estimation
 #'
-#' This function performs distributed inference for quantile spatial model
-#' (QSM) over a triangulated spatial domain using DISQ. It returns estimates
-#' for the constant coefficients, smoothness-corrected varying coefficients,
-#' and confidence intervals for the constant coefficients. Optionally, it also
-#' performs distributed wild bootstrap for the varying coefficients.
+#' Fits local SQBiT models on disjoint subregions, applies a global smoothness
+#' correction to the varying coefficients, and updates the constant coefficients
+#' through communication. The optional wild bootstrap gives pointwise intervals
+#' for the varying coefficients.
 #'
-#' DISQ combines local SQBiT estimation on subregions with a communication-based
-#' aggregation algorithm. Instead of fitting one global model on the full data,
-#' it divides the spatial domain into subregions, estimates local models in
-#' parallel, aggregates the varying coefficients through a projection-based
-#' smoothness correction, and then refines the constant coefficients through
-#' iterative communication across local machines.
+#' Construct worker subregions with \code{\link{subregion_const}} and, when
+#' needed, select varying slopes with \code{\link{forward.disq}}. Supply the
+#' constant terms in \code{C} and the varying terms in \code{X}, including a
+#' column of ones in \code{X} for a varying intercept.
 #'
-#' \strong{What is Quantile Spatial Model (QSM)?}
-#'
-#' The proposed Quantile Spatial Model (QSM) is given by:
-#' \deqn{
-#' Q_{\tau}(Y_i \mid \mathbf{C}_i,\mathbf{X}_i, \mathbf{S}_i) =
-#' \mathbf{C}_i^{\top}\boldsymbol{\eta}_{\tau}
-#' + \sum_{j=0}^p X_{ij}\beta_{j,\tau}(\mathbf{S}_i),
-#' \quad i = 1, \ldots, n.
-#' }
-#' where \eqn{Q_Y(\tau \mid \cdot) = \inf\{y: P(Y \leq y \mid \cdot) \geq \tau\}}
-#' denotes the \eqn{\tau}th conditional quantile of \eqn{Y},
-#' \eqn{\boldsymbol{\eta}_{\tau}} captures the constant effects, and
-#' \eqn{\beta_{j,\tau}(\cdot)} is the unknown spatially varying coefficient
-#' function over the spatial domain.
-#' \cr
-#'
-#' This semi-parametric model captures spatial heterogeneity through the
-#' spatially varying coefficients and non-spatial effects through the constant
-#' coefficients. The model is flexible and interpretable, and DISQ is designed
-#' to make estimation scalable for large spatial datasets.
-#'
-#' \strong{How to use DISQ?}
-#'
-#' In general, there are five steps to analyze large spatial data using DISQ.
-#'
-#' 1. Create a triangulation mesh for your spatial domain. This can be done
-#'    using package \code{Triangulation}. It can be downloaded from GitHub using
-#'    \code{install_github("funstatpackages/Triangulation")}.
-#' 2. Generate the bivariate triangulation spline basis given a polynomial degree
-#'    \eqn{d} and a smoothness order \eqn{r}. This can be done using package
-#'    \code{BPST}. It can be downloaded from GitHub using
-#'    \code{install_github("FIRST-Data-Lab/BPST")}.
-#' 3. Construct the subregions for distributed estimation. We recommend users
-#'    to use \code{subregion_const()} for domain decomposition.
-#' 4. If it is unclear which covariates should receive constant coefficients
-#'    and which should receive varying coefficients, we recommend users to first
-#'    apply \code{forward.disq()} for model selection.
-#' 5. Fit the final QSM using \code{disq_main()}.
-#'
-#' \strong{Practical recommendation}:
-#'
-#' For domain decomposition, we recommend using \code{subregion_const()} to
-#' construct the subregions from the global triangulation. If users do not know
-#' which covariates should enter the model with constant effects and which
-#' should enter with spatially varying effects, we recommend applying
-#' \code{forward.disq()} before calling \code{disq_main()}.
-#'
-#' \strong{Communication and optimization}:
-#'
-#' DISQ first performs local SQBiT estimation on each subregion. The varying
-#' coefficients are then aggregated through a projection-based smoothness
-#' correction so that the final estimates are globally smooth across subregion
-#' boundaries. The constant coefficients are further refined through a
-#' communication-based multi-round aggregation procedure implemented in
-#' \code{disq()}. The optimization in the communication step is based on
-#' gradient-based methods such as Barzilai-Borwein gradient descent or Adam.
+#' This wrapper retains the original communication routine in
+#' \code{\link{disq}}. For the fixed-projection estimator used in the current
+#' manuscript, combine saved local fits with
+#' \code{\link{disq_from_local_fits}}.
 #'
 #' @param tau quantile level
 #' @param B.eva optional global basis evaluation matrix. If supplied, the
@@ -140,10 +81,12 @@
 #' @examples
 #' \donttest{
 #' ###### Step 1. Create a Triangulation Mesh
-#' boundaries <- matrix(c(0, 0,
-#'                        0, 1,
-#'                        1, 1,
-#'                        1, 0), nrow = 4, byrow = TRUE)
+#' boundaries <- matrix(c(
+#'   0, 0,
+#'   0, 1,
+#'   1, 1,
+#'   1, 0
+#' ), nrow = 4, byrow = TRUE)
 #' tri <- TriMesh(boundaries, n = 13)
 #' Tr <- tri$Tr
 #' V <- round(tri$V, 3)
@@ -276,12 +219,11 @@
 #' Kim, M., Wang, L., and Wang, H. J. (2025). Estimation and inference of
 #' quantile spatially varying coefficient models over complicated domains.
 #' \emph{Journal of the American Statistical Association}, 120(551), 1853--1867.
-#' Taylor \& Francis.
 #'
 #' @references
 #' Lin, J., Wang, H. J., Wang, L., and Kim, M. (2026). Smoothed quantile
 #' regression for spatial data. \emph{Journal of Computational and Graphical
-#' Statistics}, just-accepted, 1--21. Taylor \& Francis.
+#' Statistics}, just-accepted, 1--21. Taylor and Francis.
 #'
 #' @references
 #' Boyd, S., Parikh, N., Chu, E., Peleato, B., Eckstein, J., and others
@@ -289,32 +231,32 @@
 #' direction method of multipliers. \emph{Foundations and Trends in Machine
 #' Learning}, 3(1), 1--122.
 disq_main <- function(
-    tau = 0.5,
-    B.eva = NULL,
-    Y, C, X, Q2, eta.j = 0.32,
-    triangles,
-    Tr, V, S,
-    maxTt = 15,
-    method = "GD-BB",
-    cs = rep(7, length(triangles)),
-    master = NULL,
-    c = 2.5,
-    stepMax = 1e-3,
-    level = 0.05,
-    alpha = 1e-5,
-    beta1 = 0.9,
-    beta2 = 0.999,
-    proj.H = NULL,
-    d = 3,
-    r = 1,
-    max.iter = 50,
-    nlambda = 10,
-    new.nlambda = 10,
-    lambda.scale = 100,
-    ncores = max(1L, parallel::detectCores() - 1L),
-    verbose = FALSE,
-    vc.wb = FALSE,
-    Br = 500
+  tau = 0.5,
+  B.eva = NULL,
+  Y, C, X, Q2, eta.j = 0.32,
+  triangles,
+  Tr, V, S,
+  maxTt = 15,
+  method = "GD-BB",
+  cs = rep(7, length(triangles)),
+  master = NULL,
+  c = 2.5,
+  stepMax = 1e-3,
+  level = 0.05,
+  alpha = 1e-5,
+  beta1 = 0.9,
+  beta2 = 0.999,
+  proj.H = NULL,
+  d = 3,
+  r = 1,
+  max.iter = 50,
+  nlambda = 10,
+  new.nlambda = 10,
+  lambda.scale = 100,
+  ncores = max(1L, parallel::detectCores() - 1L),
+  verbose = FALSE,
+  vc.wb = FALSE,
+  Br = 500
 ) {
   start_time <- Sys.time()
 
@@ -353,14 +295,14 @@ disq_main <- function(
     verbose = verbose
   )
 
-  Ys     <- fit_int$Ys
-  Cs     <- fit_int$Cs
-  Xs     <- fit_int$Xs
-  Ss     <- fit_int$Ss
-  Ws     <- fit_int$Ws
-  Gs     <- fit_int$Gs
+  Ys <- fit_int$Ys
+  Cs <- fit_int$Cs
+  Xs <- fit_int$Xs
+  Ss <- fit_int$Ss
+  Ws <- fit_int$Ws
+  Gs <- fit_int$Gs
   gammas <- fit_int$gammas
-  eta.0  <- fit_int$eta.star
+  eta.0 <- fit_int$eta.star
 
   if (!is.null(fit_int$lambdac)) {
     lambdas <- fit_int$lambdac

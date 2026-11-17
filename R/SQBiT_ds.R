@@ -1,28 +1,8 @@
-# ============================================================
-# SQBiT_ds(): patched SQBiT_ds to avoid "Not a matrix."
-# ============================================================
-
-#' Decorrelated-Score ADMM Solver (Safe / Type-Stable Version)
+#' Local decorrelated-score estimation
 #'
-#' \code{SQBiT_ds()} is a **patched, type-stable** variant of the internal DISQ routine
-#' used to solve the decorrelated-score estimating equation for the constant effects
-#' after subtracting the estimated varying-coefficient component.
-#'
-#' The original implementation can fail on some platforms / parallel backends with
-#' errors such as \dQuote{Not a matrix.} due to implicit type conversions
-#' (e.g., numeric vectors becoming \code{NULL}, 1D objects, or integer storage modes).
-#' This safe variant enforces:
-#' \itemize{
-#'   \item coercion of \code{C}, \code{X}, \code{B}, \code{Q2} to \code{double} matrices,
-#'   \item explicit matrix shapes for intermediate objects (e.g., \code{rc}, \code{gamma.0}),
-#'   \item robust matrix multiplication via \code{eigenMapMatMult()} with fallback to \code{\%*\%}.
-#' }
-#'
-#' Internally, it forms
-#' \eqn{Z = \mathrm{kr}(X, BQ_2)} and \eqn{W = [C, Z]},
-#' then computes the weighted projection matrix \eqn{G} (onto the orthogonal complement
-#' of the varying-coefficient design, with kernel weights),
-#' and finally fits a weighted, convolution-smoothed quantile regression via ADMM.
+#' Estimates the constant coefficients with the local varying-coefficient fit
+#' held fixed. A density-weighted projection removes the spline component from
+#' the score, and ADMM solves the resulting smoothed estimating equation.
 #'
 #' @param tau Quantile level in \eqn{(0,1)}. If outside \eqn{[0,1]}, the function resets \code{tau = 0.5}
 #' and issues a warning.
@@ -44,10 +24,6 @@
 #' @param incr Multiplicative factor for step size updates.
 #' @param max.iter Maximum ADMM iterations.
 #'
-#' @details
-#' This function assumes the following compiled / package-level helpers exist in the calling environment:
-#' \code{eigenMapMatMult()} and \code{armaInv()}.
-#'
 #' @return A list with components:
 #' \describe{
 #'   \item{\code{eta}}{Estimated constant-effect vector (including intercept if present in \code{C}).}
@@ -58,20 +34,19 @@
 #'
 #' @keywords internal
 SQBiT_ds <- function(tau = .5, Y, C, X, B, Q2, h, lambda,
-                          eta.0, gamma.0, s.j = 1,
-                          eps.abs = 1e-4, eps.rel = 1e-2,
-                          var.j = FALSE, zeta = 10, incr = 2,
-                          max.iter = 50) {
-
+                     eta.0, gamma.0, s.j = 1,
+                     eps.abs = 1e-4, eps.rel = 1e-2,
+                     var.j = FALSE, zeta = 10, incr = 2,
+                     max.iter = 50) {
   start_time <- Sys.time()
 
-  Y  <- as.numeric(Y)
-  C  <- as.matrix(C);  storage.mode(C)  <- "double"
-  X  <- as.matrix(X);  storage.mode(X)  <- "double"
-  B  <- as.matrix(B);  storage.mode(B)  <- "double"
+  Y <- as.numeric(Y)
+  C <- as.matrix(C);  storage.mode(C) <- "double"
+  X <- as.matrix(X);  storage.mode(X) <- "double"
+  B <- as.matrix(B);  storage.mode(B) <- "double"
   Q2 <- as.matrix(Q2); storage.mode(Q2) <- "double"
 
-  eta.0   <- as.numeric(eta.0)
+  eta.0 <- as.numeric(eta.0)
   gamma.0 <- as.numeric(gamma.0)
 
   eMM <- function(A, B) {
@@ -87,7 +62,7 @@ SQBiT_ds <- function(tau = .5, Y, C, X, B, Q2, h, lambda,
     tau <- 0.5
   }
 
-  n  <- length(Y)
+  n <- length(Y)
   np <- ncol(X)
   nq <- ncol(C)
 
@@ -125,11 +100,11 @@ SQBiT_ds <- function(tau = .5, Y, C, X, B, Q2, h, lambda,
 
   psi.eq <- function(r, s.j) {
     psi1 <- (s.j * r - (tau - 1 / 2) * ws) / (s.j + ws / (2 * h))
-    psi2 <- - (tau - 1) / s.j * ws + r
-    psi3 <- - tau / s.j * ws + r
+    psi2 <- -(tau - 1) / s.j * ws + r
+    psi3 <- -tau / s.j * ws + r
     psi1.r <- psi1 * (abs(psi1) <= h)
     psi2.r <- psi2 * (psi2 < -h)
-    psi3.r <- psi3 * (psi3 >  h)
+    psi3.r <- psi3 * (psi3 > h)
     psi1.r + psi2.r + psi3.r
   }
 
@@ -156,14 +131,16 @@ SQBiT_ds <- function(tau = .5, Y, C, X, B, Q2, h, lambda,
     r.dual <- s.j * (new.fit - old.fit)
 
     eps.prime <- sqrt(length(r.prime)) * eps.abs +
-      eps.rel * max(norm(new.psi, type = "2"),
-                    norm(new.fit, type = "2"),
-                    norm(Y.star, type = "2"))
+      eps.rel * max(
+        norm(new.psi, type = "2"),
+        norm(new.fit, type = "2"),
+        norm(Y.star, type = "2")
+      )
     eps.dual <- sqrt(length(r.dual)) * eps.abs +
       eps.rel * norm(new.u, type = "2")
 
     n.prime <- norm(r.prime, type = "2")
-    n.dual  <- norm(r.dual,  type = "2")
+    n.dual <- norm(r.dual, type = "2")
 
     if (isTRUE(var.j)) {
       old.s.j <- s.j

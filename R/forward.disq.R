@@ -1,29 +1,9 @@
-#' Forward selection for varying-coefficient identification in DISQ
+#' Select spatially varying slopes by forward GACV
 #'
-#' @description
-#' `forward.disq()` performs a forward selection procedure for determining
-#' which covariates should be modeled with **spatially varying coefficients**
-#' and which should remain as **constant coefficients** in the DISQ framework.
-#'
-#' The procedure is based on the distributed generalized approximate
-#' cross-validation (GACV) criterion computed by `SQBiT_int_gacv()`.
-#' It begins with a baseline model in which all candidate covariates are
-#' treated as constant effects, while the intercept is always modeled as a
-#' varying coefficient. At each step, the algorithm moves one covariate from
-#' the constant set to the varying set, choosing the covariate that yields
-#' the largest reduction in GACV. The procedure stops when no further
-#' improvement is achieved.
-#'
-#' Let \eqn{\mathcal{V}} and \eqn{\mathcal{C}} denote the index sets of
-#' covariates with varying and constant coefficients, respectively. The
-#' baseline model is
-#' \deqn{\mathcal{V}^{(0)} = \{0\}, \qquad \mathcal{C}^{(0)} = \{1,\ldots,p\},}
-#' where index \eqn{0} corresponds to the intercept. At iteration \eqn{t},
-#' for each \eqn{j \in \mathcal{C}^{(t)}}, the algorithm fits the candidate
-#' model obtained by moving covariate \eqn{j} from the constant set to the
-#' varying set, evaluates its distributed GACV, and selects the covariate
-#' producing the smallest criterion value. The update is accepted only if the
-#' GACV decreases.
+#' Starts with a varying intercept and constant slopes for the supplied
+#' covariates. At each step, it compares models obtained by allowing one
+#' remaining slope to vary. Candidate scores are evaluated by
+#' \code{\link{SQBiT_int_gacv}}.
 #'
 #' @param tau Quantile level. Must be between 0 and 1.
 #' @param maxTt Integer. Maximum number of forward-selection steps.
@@ -47,42 +27,10 @@
 #'   contains the triangle indices for one subregion.
 #'
 #' @details
-#' The algorithm proceeds as follows:
-#'
-#' **Step 1. Baseline model.**
-#'
-#' Fit the initial model in which all candidate covariates are treated as
-#' constant effects and only the intercept is modeled with a varying
-#' coefficient.
-#'
-#' **Step 2. Candidate updates.**
-#'
-#' For each covariate currently in the constant set, fit a candidate model in
-#' which that covariate is moved to the varying set, while all remaining
-#' covariates stay in the constant set.
-#'
-#' **Step 3. GACV comparison.**
-#'
-#' Compute the distributed GACV for each candidate model and identify the
-#' covariate producing the smallest GACV value.
-#'
-#' **Step 4. Forward update.**
-#'
-#' If the best candidate reduces the current GACV, move that covariate from
-#' the constant set to the varying set and continue. Otherwise, terminate the
-#' procedure.
-#'
-#' The function returns the final partition of covariates into constant and
-#' varying components, together with the sequence of GACV values encountered
-#' during selection.
-#'
-#' In the current implementation, the intercept is always included in the
-#' varying-coefficient component through `X = matrix(1, nrow = N, ncol = 1)`
-#' in the baseline fit and through `X = cbind(1, ...)` in subsequent
-#' candidate fits.
-#'
-#' This function relies on `SQBiT_int_gacv()` for distributed GACV evaluation
-#' under the DISQ framework.
+#' Candidates follow the column order of \code{C}; ties are resolved by the
+#' first minimum. The current implementation accepts a move whose GACV is no
+#' greater than the current value and stops when the best candidate increases
+#' it. The intercept remains varying throughout.
 #'
 #' @return
 #' A list with the following components:
@@ -110,16 +58,18 @@
 #'
 #' ## Step 1. Create triangulation
 #' boundaries <- matrix(
-#'   c(0, 0,
+#'   c(
+#'     0, 0,
 #'     0, 1,
 #'     1, 1,
-#'     1, 0),
+#'     1, 0
+#'   ),
 #'   nrow = 4, byrow = TRUE
 #' )
 #'
 #' tri <- TriMesh(boundaries, n = 13)
-#' Tr  <- tri$Tr
-#' V   <- round(tri$V, 3)
+#' Tr <- tri$Tr
+#' V <- round(tri$V, 3)
 #'
 #' ## Step 2. Generate population locations and keep points inside the domain
 #' Npop_raw <- 10000
@@ -221,7 +171,6 @@ forward.disq <- function(tau, maxTt = 100,
                          Y, C, Q2, max.iter = 50,
                          cs, eta.j = 1, d = 3, r = 1,
                          Tr, V, S, triangles) {
-
   p <- ncol(C)
   N <- length(Y)
 

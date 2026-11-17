@@ -52,9 +52,7 @@ connectivity.}
 \item{S}{Numeric matrix of spatial locations for observations.}
 
 \item{triangles}{Optional list defining the domain decomposition.
-Each element contains triangle indices forming one subregion.
-If \code{FALSE}, a simple automatic partition of the triangulation
-into \code{m} groups is constructed.}
+Each element contains triangle indices forming one subregion.}
 
 \item{max.iter}{Maximum number of iterations used in the local fitting step.}
 
@@ -65,13 +63,6 @@ in the local GACV tuning step.}
 
 \item{lambda.scale}{Numeric scaling factor used when expanding
 the lambda search grid.}
-
-\item{m}{Integer. Number of spatial subregions (or local machines).}
-
-\item{maxTt}{Integer. Reserved for compatibility with other routines.}
-}
-\value{
-Numeric scalar representing the distributed GACV value.
 }
 \description{
 \code{SQBiT_int_gacv()} computes the \strong{distributed generalized approximate
@@ -114,34 +105,15 @@ where \eqn{D} is the total effective degrees of freedom aggregated
 across all machines.
 }
 \details{
-The function operates in three stages.
-
-\strong{Step 1. Domain decomposition}
-
-If the argument \code{triangles} is not supplied, the triangulation is
-automatically partitioned into \code{m} groups of triangles. Each group
-corresponds to one local machine.
-
-\strong{Step 2. Local estimation}
-
-For each subregion, observations whose spatial locations fall inside
-the sub-triangulation are collected and used to fit the local model
-using spline basis functions. The smoothing parameter is selected
-by minimizing a local GACV criterion through \code{SQBiT::SQBiT_gacv()}.
-
-\strong{Step 3. Aggregation}
-
-Residuals and effective degrees of freedom from all machines are
-aggregated to compute the distributed GACV value.
-
-This function is primarily used as an internal utility for model
-selection procedures such as \code{forward.disq()}.
+Each worker fits a local model with \code{SQBiT::SQBiT_gacv()}. The
+empirical check losses and effective degrees of freedom are then combined
+across workers. Supply the triangle groups explicitly, for example from
+\code{\link{subregion_const}}.
 }
 \examples{
 \dontrun{
 gacv <- SQBiT_int_gacv(
   tau = 0.5,
-  m = length(triangles),
   Y = Y,
   C = C,
   X = X,

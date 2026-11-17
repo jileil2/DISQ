@@ -201,7 +201,7 @@ smqr.eta.dc <- function(h, tau, Y, C, W, G, grad, initial, gamma,
     eta_norm_sq <- as.numeric(t(eta_diff) %*% eta_diff)
 
     if (is.finite(cross) && is.finite(grad_norm_sq) &&
-        cross > 0 && grad_norm_sq > 0) {
+      cross > 0 && grad_norm_sq > 0) {
       a1 <- cross / grad_norm_sq
       a2 <- eta_norm_sq / cross
       alpha <- min(c(a1, a2, stepMax))

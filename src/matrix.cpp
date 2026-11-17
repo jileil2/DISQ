@@ -1,4 +1,4 @@
-// src/test.cpp
+// Matrix operations used by local fitting and communication.
 #include <RcppArmadillo.h>
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -27,7 +27,7 @@ arma::mat eigenMatMult(const arma::mat& A, const arma::mat& B) {
 
 //' Matrix multiplication (alias; Armadillo)
 //'
-//' Kept for backward compatibility with your existing R calls.
+//' Retains the original matrix-multiplication interface.
 //'
 //' @param A numeric matrix
 //' @param B numeric matrix

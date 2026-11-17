@@ -66,8 +66,10 @@ disq_vc_wb <- function(tau, lambdas, theta.sm,
   # helper: extract one local lambda vector of length p
   # ----------------------------------------------------------
   .disq_extract_lambda <- function(obj, p, region_id = NA_integer_) {
-    nm_try <- c("lambda.sel", "lambda.star", "lambda.opt", "lambda.min",
-                "lambdac", "lambda", "value")
+    nm_try <- c(
+      "lambda.sel", "lambda.star", "lambda.opt", "lambda.min",
+      "lambdac", "lambda", "value"
+    )
 
     if (is.list(obj) && !is.data.frame(obj)) {
       if (!is.null(names(obj))) {
@@ -126,8 +128,8 @@ disq_vc_wb <- function(tau, lambdas, theta.sm,
   nq <- (d + 1) * (d + 2) / 2
 
   if (length(Cs) != nreg || length(Xs) != nreg || length(Ss) != nreg ||
-      length(gammas) != nreg || length(lambdas) != nreg ||
-      length(triangles) != nreg || length(cs) != nreg) {
+    length(gammas) != nreg || length(lambdas) != nreg ||
+    length(triangles) != nreg || length(cs) != nreg) {
     stop(
       "disq_vc_wb(): Ys, Cs, Xs, Ss, gammas, lambdas, triangles, and cs must all have the same length."
     )
@@ -170,8 +172,8 @@ disq_vc_wb <- function(tau, lambdas, theta.sm,
       Z = S.a
     )
 
-    Q2.sub  <- as.matrix(B0.sub$Q2)
-    B.sub   <- as.matrix(B0.sub$B)
+    Q2.sub <- as.matrix(B0.sub$Q2)
+    B.sub <- as.matrix(B0.sub$B)
     BQ2.sub <- as.matrix(B.sub %*% Q2.sub)
 
     K.sub <- B0.sub$K
@@ -269,8 +271,8 @@ disq_vc_wb <- function(tau, lambdas, theta.sm,
   # Evaluate point estimates and confidence intervals
   # ----------------------------------------------------------
   beta.est <- NULL
-  beta.lb  <- NULL
-  beta.ub  <- NULL
+  beta.lb <- NULL
+  beta.ub <- NULL
 
   for (j in seq_len(ncol(theta.sm))) {
     beta.est.B.j <- NULL

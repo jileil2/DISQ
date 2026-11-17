@@ -47,16 +47,18 @@ in red. By default, the largest subregion is selected.
 \examples{
 \dontrun{
 boundaries <- matrix(
-  c(0, 0,
+  c(
+    0, 0,
     0, 1,
     1, 1,
-    1, 0),
+    1, 0
+  ),
   nrow = 4, byrow = TRUE
 )
 
 tri <- TriMesh(boundaries, n = 13)
-Tr  <- tri$Tr
-V   <- round(tri$V, 3)
+Tr <- tri$Tr
+V <- round(tri$V, 3)
 
 triangles <- subregion_const(Tr = Tr, V = V, n.layer = 1)
 

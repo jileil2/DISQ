@@ -44,11 +44,11 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
                      level = 0.05, gamma.hat, biascorr = FALSE) {
   start_time <- Sys.time()
 
-  Y  <- as.numeric(Y)
-  C  <- as.matrix(C)
-  X  <- as.matrix(X)
-  P  <- as.matrix(P)
-  B  <- as.matrix(B)
+  Y <- as.numeric(Y)
+  C <- as.matrix(C)
+  X <- as.matrix(X)
+  P <- as.matrix(P)
+  B <- as.matrix(B)
   Q2 <- as.matrix(Q2)
   BQ2.eva <- as.matrix(BQ2.eva)
 
@@ -57,10 +57,10 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
     tau <- 0.5
   }
 
-  n  <- length(Y)
+  n <- length(Y)
   np <- ncol(X)
   nq <- ncol(C)
-  J  <- ncol(Q2)
+  J <- ncol(Q2)
 
   if (nrow(C) != n) stop("SQBiT_wb(): nrow(C) must equal length(Y).")
   if (nrow(X) != n) stop("SQBiT_wb(): nrow(X) must equal length(Y).")
@@ -91,8 +91,10 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
     }
 
     if (is.list(lambda) && !is.null(names(lambda))) {
-      for (nm in c("lambda.sel", "lambda.star", "lambda.opt", "lambda.min",
-                   "lambdac", "lambda", "value")) {
+      for (nm in c(
+        "lambda.sel", "lambda.star", "lambda.opt", "lambda.min",
+        "lambdac", "lambda", "value"
+      )) {
         if (!is.null(lambda[[nm]])) {
           return(.sqbit_clean_lambda(lambda[[nm]], np))
         }
@@ -259,7 +261,7 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
       new.u <- old.u + (new.psi - res.new)
 
       r.prime <- res.new - new.psi
-      r.dual  <- eta.j * (new.fit - old.fit)
+      r.dual <- eta.j * (new.fit - old.fit)
 
       eps.prime <- sqrt(length(r.prime)) * eps.abs +
         eps.rel * max(
@@ -272,7 +274,7 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
         eps.rel * norm(as.matrix(new.u), type = "2")
 
       n.prime <- norm(as.matrix(r.prime), type = "2")
-      n.dual  <- norm(as.matrix(r.dual), type = "2")
+      n.dual <- norm(as.matrix(r.dual), type = "2")
 
       if (var.j) {
         old.eta.j <- eta.j
@@ -290,7 +292,7 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
       }
 
       if ((n.prime < eps.prime && n.dual < eps.dual) ||
-          iter.admm >= max.iter) {
+        iter.admm >= max.iter) {
         break
       }
     }
@@ -314,17 +316,17 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
     betas.ub <- NULL
     theta.lb <- NULL
     theta.ub <- NULL
-    theta.B  <- NULL
+    theta.B <- NULL
 
     for (j in seq_len(np)) {
       idx <- ((j - 1) * J + 1):(j * J)
 
       beta.hat.j <- BQ2.eva %*% gamma.hat.vc[idx, , drop = FALSE]
-      betas.B.j  <- BQ2.eva %*% t(gamma.B[, idx, drop = FALSE])
+      betas.B.j <- BQ2.eva %*% t(gamma.B[, idx, drop = FALSE])
 
-      theta.j   <- Q2 %*% gamma.hat.vc[idx, , drop = FALSE]
+      theta.j <- Q2 %*% gamma.hat.vc[idx, , drop = FALSE]
       theta.B.j <- Q2 %*% t(gamma.B[, idx, drop = FALSE])
-      theta.B   <- rbind(theta.B, theta.B.j)
+      theta.B <- rbind(theta.B, theta.B.j)
 
       lb.j <- apply(betas.B.j, 1, stats::quantile, probs = level / 2)
       ub.j <- apply(betas.B.j, 1, stats::quantile, probs = 1 - level / 2)
@@ -339,7 +341,7 @@ SQBiT_wb <- function(h, tau, Y, C, X, P, B, Q2, max.iter = 50,
       theta.ub <- cbind(theta.ub, 2 * theta.j - matrix(theta.lb.j, ncol = 1))
     }
   } else {
-    theta.B  <- NULL
+    theta.B <- NULL
     theta.lb <- NULL
     theta.ub <- NULL
     betas.lb <- NULL

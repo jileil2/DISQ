@@ -27,8 +27,8 @@ This operator is used throughout the DISQ/SQBiT codebase to construct the design
 for varying-coefficient terms, e.g. \eqn{Z = \mathrm{kr}(X, BQ2)} where \eqn{BQ2 = B Q_2}.
 }
 \examples{
-A <- matrix(1:6, nrow = 2, byrow = TRUE)  # 2 x 3
-B <- matrix(1:4, nrow = 2, byrow = TRUE)  # 2 x 2
+A <- matrix(1:6, nrow = 2, byrow = TRUE) # 2 x 3
+B <- matrix(1:4, nrow = 2, byrow = TRUE) # 2 x 2
 kr(A, B)
 
 # For i=1: outer(c(1,2,3), c(1,2)) -> c(1,2,2,4,3,6)

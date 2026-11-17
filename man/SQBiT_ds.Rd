@@ -2,7 +2,7 @@
 % Please edit documentation in R/SQBiT_ds.R
 \name{SQBiT_ds}
 \alias{SQBiT_ds}
-\title{Decorrelated-Score ADMM Solver (Safe / Type-Stable Version)}
+\title{Local decorrelated-score estimation}
 \usage{
 SQBiT_ds(
   tau = 0.5,
@@ -71,28 +71,8 @@ A list with components:
 }
 }
 \description{
-\code{SQBiT_ds()} is a \strong{patched, type-stable} variant of the internal DISQ routine
-used to solve the decorrelated-score estimating equation for the constant effects
-after subtracting the estimated varying-coefficient component.
-}
-\details{
-The original implementation can fail on some platforms / parallel backends with
-errors such as \dQuote{Not a matrix.} due to implicit type conversions
-(e.g., numeric vectors becoming \code{NULL}, 1D objects, or integer storage modes).
-This safe variant enforces:
-\itemize{
-\item coercion of \code{C}, \code{X}, \code{B}, \code{Q2} to \code{double} matrices,
-\item explicit matrix shapes for intermediate objects (e.g., \code{rc}, \code{gamma.0}),
-\item robust matrix multiplication via \code{eigenMapMatMult()} with fallback to \code{\%*\%}.
-}
-
-Internally, it forms
-\eqn{Z = \mathrm{kr}(X, BQ_2)} and \eqn{W = [C, Z]},
-then computes the weighted projection matrix \eqn{G} (onto the orthogonal complement
-of the varying-coefficient design, with kernel weights),
-and finally fits a weighted, convolution-smoothed quantile regression via ADMM.
-
-This function assumes the following compiled / package-level helpers exist in the calling environment:
-\code{eigenMapMatMult()} and \code{armaInv()}.
+Estimates the constant coefficients with the local varying-coefficient fit
+held fixed. A density-weighted projection removes the spline component from
+the score, and ADMM solves the resulting smoothed estimating equation.
 }
 \keyword{internal}

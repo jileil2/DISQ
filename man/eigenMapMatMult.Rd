@@ -15,5 +15,5 @@ eigenMapMatMult(A, B)
 A \%*\% B
 }
 \description{
-Kept for backward compatibility with your existing R calls.
+Retains the original matrix-multiplication interface.
 }

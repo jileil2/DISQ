@@ -19,8 +19,8 @@
 #' the vectorized outer product of the \eqn{i}th rows of \code{A} and \code{B}.
 #'
 #' @examples
-#' A <- matrix(1:6, nrow = 2, byrow = TRUE)  # 2 x 3
-#' B <- matrix(1:4, nrow = 2, byrow = TRUE)  # 2 x 2
+#' A <- matrix(1:6, nrow = 2, byrow = TRUE) # 2 x 3
+#' B <- matrix(1:4, nrow = 2, byrow = TRUE) # 2 x 2
 #' kr(A, B)
 #'
 #' # For i=1: outer(c(1,2,3), c(1,2)) -> c(1,2,2,4,3,6)
@@ -32,7 +32,7 @@ kr <- function(A, B, byrow = TRUE) {
   B <- as.matrix(B)
   if (nrow(A) != nrow(B)) stop("kr(): A and B must have the same number of rows.")
 
-  n  <- nrow(A)
+  n <- nrow(A)
   p1 <- ncol(A)
   p2 <- ncol(B)
 

@@ -54,7 +54,7 @@
 #' A <- matrix(c(2, 1, 1, 2), nrow = 2)
 #' AInv(A)
 #'
-#' B <- matrix(c(1, 2, 2, 4), nrow = 2)  # singular matrix
+#' B <- matrix(c(1, 2, 2, 4), nrow = 2) # singular matrix
 #' AInv(B)
 #' }
 #'

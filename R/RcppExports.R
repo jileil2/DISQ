@@ -32,7 +32,7 @@ eigenMatMult <- function(A, B) {
 
 #' Matrix multiplication (alias; Armadillo)
 #'
-#' Kept for backward compatibility with your existing R calls.
+#' Retains the original matrix-multiplication interface.
 #'
 #' @param A numeric matrix
 #' @param B numeric matrix

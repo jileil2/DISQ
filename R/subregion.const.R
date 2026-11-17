@@ -73,16 +73,18 @@
 #' \dontrun{
 #' ## Step 1: Create a triangulated mesh
 #' boundaries <- matrix(
-#'   c(0, 0,
+#'   c(
+#'     0, 0,
 #'     0, 1,
 #'     1, 1,
-#'     1, 0),
+#'     1, 0
+#'   ),
 #'   nrow = 4, byrow = TRUE
 #' )
 #'
 #' tri <- TriMesh(boundaries, n = 13)
-#' Tr  <- tri$Tr
-#' V   <- round(tri$V, 3)
+#' Tr <- tri$Tr
+#' V <- round(tri$V, 3)
 #'
 #' ## Step 2: Perform domain decomposition
 #' triangles <- subregion_const(Tr = Tr, V = V, n.layer = 1)
@@ -93,9 +95,8 @@
 #'
 #' @export
 subregion_const <- function(nt = nrow(Tr), Tr, V, n.layer = 1) {
-
   stopifnot(is.matrix(Tr), ncol(Tr) == 3)
-  stopifnot(is.matrix(V),  ncol(V)  == 2)
+  stopifnot(is.matrix(V), ncol(V) == 2)
   stopifnot(is.numeric(n.layer), length(n.layer) == 1, n.layer >= 1)
 
   nt <- as.integer(nt)
@@ -132,7 +133,6 @@ subregion_const <- function(nt = nrow(Tr), Tr, V, n.layer = 1) {
   collection <- 1L
 
   for (ll in seq_len(nt)) {
-
     before <- length(triangles)
 
     pool <- sort(unique(unlist(triangles)))
@@ -143,7 +143,6 @@ subregion_const <- function(nt = nrow(Tr), Tr, V, n.layer = 1) {
     if (length(candidates) == 0) break
 
     for (j in candidates) {
-
       tr_j <- match_triangles(sub_regions[[j]]$T.sub, Tr)
       if (anyNA(tr_j)) next
 
@@ -182,7 +181,6 @@ subregion_const <- function(nt = nrow(Tr), Tr, V, n.layer = 1) {
 
   if (length(leftovers) > 0) {
     for (j in leftovers) {
-
       tr_j <- match_triangles(sub_regions[[j]]$T.sub, Tr)
       if (anyNA(tr_j)) next
 
@@ -228,16 +226,18 @@ subregion_const <- function(nt = nrow(Tr), Tr, V, n.layer = 1) {
 #' @examples
 #' \dontrun{
 #' boundaries <- matrix(
-#'   c(0, 0,
+#'   c(
+#'     0, 0,
 #'     0, 1,
 #'     1, 1,
-#'     1, 0),
+#'     1, 0
+#'   ),
 #'   nrow = 4, byrow = TRUE
 #' )
 #'
 #' tri <- TriMesh(boundaries, n = 13)
-#' Tr  <- tri$Tr
-#' V   <- round(tri$V, 3)
+#' Tr <- tri$Tr
+#' V <- round(tri$V, 3)
 #'
 #' triangles <- subregion_const(Tr = Tr, V = V, n.layer = 1)
 #'
@@ -255,7 +255,6 @@ sub_tri_plot <- function(triangles, V, Tr,
                          colors = NULL,
                          master = which.max(vapply(triangles, length, numeric(1))),
                          border = "white") {
-
   stopifnot(is.list(triangles), length(triangles) >= 1)
   stopifnot(is.matrix(V), ncol(V) == 2)
   stopifnot(is.matrix(Tr), ncol(Tr) == 3)

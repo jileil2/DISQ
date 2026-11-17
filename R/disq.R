@@ -67,7 +67,6 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
                  alpha = 1e-5, beta1 = 0.9, beta2 = 0.999,
                  master, level = 0.05, method = "GD-BB",
                  stepMax = 1e-3) {
-
   start_time <- Sys.time()
 
   # ---------------------------
@@ -98,8 +97,8 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
   eta.t <- matrix(apply(eta, 2, mean), ncol = 1)
 
   # communication bandwidths
-  h <- c * ((q + log(N)) / N) ^ (1 / 3)
-  b <- c * ((q + log(n.m)) / n.m) ^ (1 / 3)
+  h <- c * ((q + log(N)) / N)^(1 / 3)
+  b <- c * ((q + log(n.m)) / n.m)^(1 / 3)
 
   score <- function(G, Y, gamma, eta, W, C, h, tau) {
     G <- as.matrix(G)
@@ -120,10 +119,10 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
   }
 
   # master objects
-  C1     <- Cs[[master]]
-  Y1     <- Ys[[master]]
+  C1 <- Cs[[master]]
+  Y1 <- Ys[[master]]
   gamma1 <- gammas[[master]]
-  W1     <- Ws[[master]]
+  W1 <- Ws[[master]]
 
   # projected constant covariates
   Cs.proj <- vector("list", m)
@@ -139,7 +138,6 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
   ci.trace <- vector("list", 0)
 
   for (t in seq_len(maxTt)) {
-
     grad.1.b <- score(
       Y = Ys[[master]],
       C = cbind(1, Cs[[master]]),
@@ -191,7 +189,7 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
     trace.sc <- rbind(trace.sc, matrix(grad.cc, nrow = 1, ncol = q))
 
     stop_now <- (t > 1) && (gt[t] < min(1e-4, 1 / sqrt(N)))
-    diverge  <- (t > 1) && (gt[t] > gt[t - 1])
+    diverge <- (t > 1) && (gt[t] > gt[t - 1])
 
     if (diverge || stop_now) {
       break
@@ -247,7 +245,7 @@ disq <- function(tau, m, maxTt = 100, c = 2.5,
 
   bounds <- quantile(resid, c(0.025, 0.975))
   rr <- bounds[2] - bounds[1]
-  b.ve <- 0.45 * rr^2 * (q * log(n.m) / n.m) ^ (1 / 3)
+  b.ve <- 0.45 * rr^2 * (q * log(n.m) / n.m)^(1 / 3)
   kd <- dnorm(resid / b.ve) / b.ve
   Sigma.h <- diag(kd)
 

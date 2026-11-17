@@ -1,6 +1,6 @@
 \name{disq_from_local_fits}
 \alias{disq_from_local_fits}
-\title{Fit the manuscript DISQ estimator from local SQBiT fits}
+\title{Combine local SQBiT fits by fixed-projection communication}
 \usage{
 disq_from_local_fits(Y, C, X, S, B, Q2, index, local, tau,
   radius, master = which.max(lengths(index)), c = 0.20,
@@ -33,7 +33,7 @@ disq_from_local_fits(Y, C, X, S, B, Q2, index, local, tau,
 }
 \description{Performs the local decorrelated initialization, smoothness correction,
 global density-weighted projection, fixed-projection communication, and
-finite-range spatial covariance calculation used by the paper.}
+finite-range spatial covariance calculation.}
 \details{Supply the local SQBiT fits at the selected allocation and quantile.
 The common projection uses a Gaussian kernel and remains fixed during
 communication. The function records each actual update and retains a partial
